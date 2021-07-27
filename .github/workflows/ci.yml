@@ -58,4 +58,6 @@ jobs:
         run: tutor images build openedx
 
       - name: Push the image
-        run: tutor images push openedx
+        run: |
+          docker images
+          tutor images push openedx
