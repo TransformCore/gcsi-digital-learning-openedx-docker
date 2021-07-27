@@ -1,6 +1,6 @@
-name: Continous Integration
+name: Build custom Tutor Image
 
-on: [push, pull_request]
+on: workflow_dispatch
 
 jobs:
   build:
