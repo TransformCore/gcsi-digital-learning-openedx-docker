@@ -1,0 +1,46 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: openedx
+  namespace: openedx-dev
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt"
+spec:
+  tls:
+  - hosts:
+    - "lms-dev.dlp.engineplatform.co.uk"
+    - "cms-dev.dlp.engineplatform.co.uk"
+    - "apps-dev.dlp.engineplatform.co.uk"
+    secretName: wild-dlp.engineplatform.co.uk-tls
+  rules:
+  - host: lms-dev.dlp.engineplatform.co.uk
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: lms
+            port:
+              number: 8000
+  - host: cms-dev.dlp.engineplatform.co.uk
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: cms
+            port:
+              number: 8000
+  - host: apps-dev.dlp.engineplatform.co.uk
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: mfe
+              port:
+                number: 8002

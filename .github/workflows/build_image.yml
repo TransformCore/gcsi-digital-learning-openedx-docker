@@ -1,4 +1,4 @@
-name: Build custom Tutor Image
+name: Build custom Tutor Docker image
 
 on: workflow_dispatch
 
@@ -60,6 +60,9 @@ jobs:
           ls -l $PLUGINS_PATH
           tree -d $PLUGINS_PATH
 
+      - name: Add private.txt requirements
+        run: |
+          cp image/private.txt ${{ env.PLUGINS_PATH }}
 
       - name: Render Tutor Config
         run: |
