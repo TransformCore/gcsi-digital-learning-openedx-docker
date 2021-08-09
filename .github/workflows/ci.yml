@@ -55,9 +55,9 @@ jobs:
       - name: Validate custom resources
         run: |
           echo "### Themes"
-          find . --type d $THEMES_PATH
+          tree -d $THEMES_PATH
           echo "### Plugins"
-          find . --type d $PLUGINS_PATH
+          tree -d $PLUGINS_PATH
 
 
       - name: Render Tutor Config
