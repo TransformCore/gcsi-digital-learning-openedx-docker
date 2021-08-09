@@ -52,11 +52,12 @@ jobs:
           token: ${{ secrets.PAT }}
           ref: master
 
-      - name: Validate custom resources
+      - name: Validate custom resource locations
         run: |
           echo "### Themes"
           tree -d $THEMES_PATH
           echo "### Plugins"
+          ls -l $PLUGINS_PATH
           tree -d $PLUGINS_PATH
 
 
