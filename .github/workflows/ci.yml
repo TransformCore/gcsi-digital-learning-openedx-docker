@@ -40,7 +40,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: TransformCore/gcsi-openedx-theme
-          path: ${{ env.THEMES_PATH }}
+          path: ${{ env.THEMES_PATH }}/gcsi-openedx-theme
           token: ${{ secrets.PAT }}
           ref: main
 
@@ -48,7 +48,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: TransformCore/gcsi-digital-learning-openedx
-          path: ${{ env.PLUGINS_PATH }}
+          path: ${{ env.PLUGINS_PATH }}/gcsi-digital-learning-openedx
           token: ${{ secrets.PAT }}
           ref: master
 
