@@ -1,6 +1,6 @@
 name: Build custom Tutor Image
 
-on: workflow_dispatch
+on: push
 
 jobs:
   build:
@@ -51,6 +51,14 @@ jobs:
           path: ${{ env.PLUGINS_PATH }}/gcsi-digital-learning-openedx
           token: ${{ secrets.PAT }}
           ref: master
+
+      - name: Validate custom resources
+        run: |
+          echo "### Themes"
+          find . $THEMES_PATH
+          echo "### Plugins"
+          find . $PLUGINS_PATH
+
 
       - name: Render Tutor Config
         run: |
