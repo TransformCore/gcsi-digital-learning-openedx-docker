@@ -9,6 +9,7 @@ jobs:
       KUBECONFIG: /home/runner/.kube/config
       ENVIRONMENT_ID: dev
       NAMESPACE: openedx-dev
+      TUTOR_RELEASE: v12.0.3
     steps:
       - name: Checkout
         uses: actions/checkout@v1
@@ -23,7 +24,7 @@ jobs:
       - name: Download Tutor binary
         run: |-
           echo "TUTOR_ROOT=$GITHUB_WORKSPACE/tutor" >> $GITHUB_ENV
-          sudo curl -L "https://github.com/overhangio/tutor/releases/download/v12.0.2/tutor-$(uname -s)_$(uname -m)" -o /usr/local/bin/tutor && sudo chmod 0755 /usr/local/bin/tutor
+          sudo curl -L "https://github.com/overhangio/tutor/releases/download/$TUTOR_RELEASE/tutor-$(uname -s)_$(uname -m)" -o /usr/local/bin/tutor && sudo chmod 0755 /usr/local/bin/tutor
 
       - name: Get Kube config
         run: aws eks --region eu-west-2 update-kubeconfig --name codlp-platform-eks-live --alias eks-live
