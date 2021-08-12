@@ -1,6 +1,6 @@
 name: Build custom Tutor Docker image
 
-on: workflow_dispatch
+on: [push, workflow_dispatch]
 
 jobs:
   build:
@@ -10,6 +10,8 @@ jobs:
       DOCKER_REGISTRY: docker.io
       TUTOR_RELEASE: v12.0.3
     steps:
+      - uses: actions/checkout@v1
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
