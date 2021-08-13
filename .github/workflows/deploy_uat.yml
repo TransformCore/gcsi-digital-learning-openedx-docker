@@ -1,4 +1,4 @@
-name: Deploy to EKS (DEV)
+name: Deploy to EKS (UAT)
 
 on: push
 
