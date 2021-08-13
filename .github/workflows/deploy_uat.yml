@@ -1,0 +1,128 @@
+name: Deploy to EKS (DEV)
+
+on: push
+
+jobs:
+  deploy:
+    runs-on: ubuntu-20.04
+    env:
+      KUBECONFIG: /home/runner/.kube/config
+      ENVIRONMENT_ID: dev
+      NAMESPACE: openedx-uat
+      TUTOR_RELEASE: v12.0.3
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-2
+
+      - name: Download Tutor binary
+        run: |-
+          echo "TUTOR_ROOT=$GITHUB_WORKSPACE/tutor" >> $GITHUB_ENV
+          sudo curl -L "https://github.com/overhangio/tutor/releases/download/$TUTOR_RELEASE/tutor-$(uname -s)_$(uname -m)" -o /usr/local/bin/tutor && sudo chmod 0755 /usr/local/bin/tutor
+
+      - name: Get Kube config
+        run: aws eks --region eu-west-2 update-kubeconfig --name codlp-platform-eks-live --alias eks-live
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v1
+        id: install-kubectl
+
+      - name: Fech JWT token
+        run: |-
+          ### Fetch secrets from Kubernetes into Environment
+          kubectl get secret jwt -n $NAMESPACE -o json |  jq  '.data| map_values(@base64d)'  | jq -r 'keys[] as $k | "\(.[$k])"' > jwt_private_key
+
+      - name: MYSQL
+        run: |-
+          echo "TUTOR_RUN_MYSQL=false" >> $GITHUB_ENV
+          kubectl get secret mysql-root -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' | jq -r 'keys[] as $k | "TUTOR_\($k|ascii_upcase)=\(.[$k])"' >> $GITHUB_ENV
+          kubectl get secret mysql-openedx -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' | jq -r 'keys[] as $k | "TUTOR_\($k|ascii_upcase)=\(.[$k])"' >> $GITHUB_ENV
+
+      - name: Redis
+        run: |-
+          echo "TUTOR_RUN_REDIS=false" >> $GITHUB_ENV
+          kubectl get secret redis -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' | jq -r 'keys[] as $k | "TUTOR_\($k|ascii_upcase)=\(.[$k])"' >> $GITHUB_ENV
+
+      - name: ElasticSearch
+        run: |-
+          echo "TUTOR_RUN_ELASTICSEARCH=false" >> $GITHUB_ENV
+          kubectl get secret elasticsearch -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' | jq -r 'keys[] as $k | "TUTOR_\($k|ascii_upcase)=\(.[$k])"' >> $GITHUB_ENV
+
+      - name: STMP
+        run: |-
+          # These we fetch from GitHub Secrets as we don't own the service
+          echo "TUTOR_RUN_SMTP=false" >> $GITHUB_ENV
+          echo "TUTOR_SMTP_HOST=${{ secrets.SMTP_HOST }}" >> $GITHUB_ENV
+          echo "TUTOR_SMTP_USERNAME=${{ secrets.SMTP_USERNAME }}" >> $GITHUB_ENV
+          echo "TUTOR_SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}" >> $GITHUB_ENV
+          echo "TUTOR_SMTP_USE_SSL=${{ secrets.SMTP_USE_SSL }}" >> $GITHUB_ENV
+          echo "TUTOR_SMTP_PORT=${{ secrets.SMTP_PORT }}" >> $GITHUB_ENV
+
+      - name: Load environment specific settings (direct)
+        run: |-
+          # Pin the instalation ID with the Kubernetes namespace. It needs to be unique and static per instalation.
+          cat environments/$ENVIRONMENT_ID/config.yml >> $GITHUB_ENV
+
+      - name: Load additional environment specific settings  (computed)
+        run: |-
+          # We don't want to run these services as we are using the Kubernetes ingress instead.
+          echo "TUTOR_ID=$ID" >> $GITHUB_ENV
+          echo "TUTOR_LMS_HOST=$LMS_HOSTNAME.$BASE_DOMAIN" >> $GITHUB_ENV
+          echo "TUTOR_CMS_HOST=$CMS_HOSTNAME.$BASE_DOMAIN" >> $GITHUB_ENV
+          echo "TUTOR_K8S_NAMESPACE=$NAMESPACE" >> $GITHUB_ENV
+
+          echo TUTOR_DOCKER_IMAGE_OPENEDX=$DOCKER_IMAGE_OPENEDX >> $GITHUB_ENV
+
+          echo "TUTOR_RUN_CADDY=false" >> $GITHUB_ENV
+          echo "TUTOR_RUN_NGINX=false" >> $GITHUB_ENV
+
+      - name: Create Kubernetes add-on resources
+        run:  |-
+          # Create kubernetes ingress and other environment resources
+          kubectl apply -f environments/dev/k8s
+
+      - name: Are they available here? (debug)
+        run: |-
+          env |grep TUTOR
+          # These we fetch from GitHub Secrets as we don't own the service
+          # Also these values are discreet, and there's little point to manage them in a CI worflow.
+          # They could be imported from a environment specific file stored in the repo(?)
+
+      - name: Generate Tutor Config
+        run:  |-
+          export TUTOR_JWT_RSA_PRIVATE_KEY=\'$(sed -E 's/$/\n/g' ./jwt_private_key)\'
+          tutor --version
+          pip install tutor-mfe
+          tutor plugins enable mfe
+          tutor config save
+          cat $TUTOR_ROOT/config.yml
+
+      - name: Patch Generated Configuration
+        run:  |-
+          cd $TUTOR_ROOT/env/apps/openedx/config/
+          mv lms.env.json lms.env.json.orig
+          # AWS SSL Protocol not supported by Tutor image.
+          jq -r  '.DATABASES.default.OPTIONS += {ssl_mode: "DISABLED"}' lms.env.json.orig >  lms.env.json
+          mv cms.env.json cms.env.json.orig
+          jq -r  '.DATABASES.default.OPTIONS += {ssl_mode: "DISABLED"}' cms.env.json.orig >  cms.env.json
+          rm *orig
+
+
+
+      - name: Deploy Tutor
+        run:  |-
+          tutor k8s start
+
+      - name: Run tutor init
+        run:  |-
+          tutor k8s init
+
+      - name: Set theme
+        run:  |-
+          tutor k8s settheme gcsi-openedx-theme "$TUTOR_LMS_HOST"

@@ -1,0 +1,5 @@
+BASE_DOMAIN=dlp.engineplatform.co.uk
+LMS_HOSTNAME=lms-uat
+CMS_HOSTNAME=cms-uat
+DOCKER_IMAGE_OPENEDX=enginetransformation/openedx:20210812-1338
+ID=bGKIUiytZVHAkzqDDLm4bC1V
