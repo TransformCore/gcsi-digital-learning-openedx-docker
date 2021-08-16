@@ -1,6 +1,6 @@
 name: Deploy to EKS (DEV)
 
-on: push
+on: [push, workflow_dispatch]
 
 jobs:
   deploy:

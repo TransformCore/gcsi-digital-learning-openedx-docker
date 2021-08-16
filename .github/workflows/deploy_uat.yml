@@ -1,6 +1,6 @@
 name: Deploy to EKS (UAT)
 
-on: push
+on: workflow_dispatch
 
 jobs:
   deploy:
