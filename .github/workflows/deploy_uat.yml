@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-20.04
     env:
       KUBECONFIG: /home/runner/.kube/config
-      ENVIRONMENT_ID: dev
+      ENVIRONMENT_ID: uat
       NAMESPACE: openedx-uat
       TUTOR_RELEASE: v12.0.3
     steps:
@@ -85,7 +85,7 @@ jobs:
       - name: Create Kubernetes add-on resources
         run:  |-
           # Create kubernetes ingress and other environment resources
-          kubectl apply -f environments/dev/k8s
+          kubectl apply -f "environments/$ENVIRONMENT_ID/k8s"
 
       - name: Are they available here? (debug)
         run: |-
