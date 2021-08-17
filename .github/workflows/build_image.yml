@@ -8,7 +8,7 @@ jobs:
     env:
       DOCKER_IMAGE: enginetransformation/openedx
       DOCKER_REGISTRY: docker.io
-      TUTOR_RELEASE: v12.0.3
+      TUTOR_RELEASE: v12.0.4
     steps:
       - uses: actions/checkout@v1
 
