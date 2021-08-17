@@ -8,7 +8,7 @@ jobs:
     env:
       DOCKER_IMAGE: enginetransformation/openedx
       DOCKER_REGISTRY: docker.io
-      TUTOR_RELEASE: v12.0.3
+      TUTOR_RELEASE: v12.0.4
     steps:
       - uses: actions/checkout@v1
 
@@ -26,7 +26,7 @@ jobs:
 
       - name: Set Tutor Root in the Workspace
         run: |
-          echo "DOCKER_TAG=$(date +%Y%m%d-%H%M)" >> $GITHUB_ENV
+          echo "DOCKER_TAG=$TUTOR_RELEASE-$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
           echo "TUTOR_ROOT=$GITHUB_WORKSPACE/tutor" >> $GITHUB_ENV
           echo "THEMES_PATH=$GITHUB_WORKSPACE/tutor/env/build/openedx/themes" >> $GITHUB_ENV
           echo "PLUGINS_PATH=$GITHUB_WORKSPACE/tutor/env/build/openedx/requirements" >> $GITHUB_ENV

@@ -1,0 +1,12 @@
+{
+  "THIRD_PARTY_AUTH_BACKENDS": [
+    "edxapi.booking.BookingOAuth2"
+  ],
+  "DATABASES": {
+    "default": {
+      "OPTIONS": {
+        "ssl_mode": "DISABLED"
+      }
+    }
+  }
+}
