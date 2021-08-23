@@ -9,7 +9,7 @@ jobs:
       KUBECONFIG: /home/runner/.kube/config
       ENVIRONMENT_ID: uat
       NAMESPACE: openedx-uat
-      TUTOR_RELEASE: v12.0.3
+      TUTOR_RELEASE: v12.0.4
     steps:
       - name: Checkout
         uses: actions/checkout@v1
@@ -107,13 +107,11 @@ jobs:
         run:  |-
           cd $TUTOR_ROOT/env/apps/openedx/config/
           mv lms.env.json lms.env.json.orig
-          # AWS SSL Protocol not supported by Tutor image.
-          jq -r  '.DATABASES.default.OPTIONS += {ssl_mode: "DISABLED"}' lms.env.json.orig >  lms.env.json
+          jq -s '.[0] * .[1]'  lms.env.json.orig  "environments/$ENVIRONMENT_ID/settings_merge.json" >  lms.env.json
+
           mv cms.env.json cms.env.json.orig
-          jq -r  '.DATABASES.default.OPTIONS += {ssl_mode: "DISABLED"}' cms.env.json.orig >  cms.env.json
+          jq -s '.[0] * .[1]'  cms.env.json.orig  "environments/$ENVIRONMENT_ID/settings_merge.json" >  cms.env.json
           rm *orig
-
-
 
       - name: Deploy Tutor
         run:  |-

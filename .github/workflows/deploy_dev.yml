@@ -9,7 +9,7 @@ jobs:
       KUBECONFIG: /home/runner/.kube/config
       ENVIRONMENT_ID: dev
       NAMESPACE: openedx-dev
-      TUTOR_RELEASE: v12.0.3
+      TUTOR_RELEASE: v12.0.4
     steps:
       - name: Checkout
         uses: actions/checkout@v1
@@ -85,7 +85,7 @@ jobs:
       - name: Create Kubernetes add-on resources
         run:  |-
           # Create kubernetes ingress and other environment resources
-          kubectl apply -f environments/dev/k8s
+          kubectl apply -f "environments/$ENVIRONMENT_ID/k8s"
 
       - name: Are they available here? (debug)
         run: |-
@@ -98,22 +98,21 @@ jobs:
         run:  |-
           export TUTOR_JWT_RSA_PRIVATE_KEY=\'$(sed -E 's/$/\n/g' ./jwt_private_key)\'
           tutor --version
-          pip install tutor-mfe
-          tutor plugins enable mfe
+          #pip install tutor-mfe
+          #tutor plugins enable mfe
           tutor config save
           cat $TUTOR_ROOT/config.yml
 
       - name: Patch Generated Configuration
         run:  |-
+          pwd
           cd $TUTOR_ROOT/env/apps/openedx/config/
           mv lms.env.json lms.env.json.orig
-          # AWS SSL Protocol not supported by Tutor image.
-          jq -r  '.DATABASES.default.OPTIONS += {ssl_mode: "DISABLED"}' lms.env.json.orig >  lms.env.json
+          jq -s '.[0] * .[1]'  lms.env.json.orig  "$GITHUB_WORKSPACE/environments/$ENVIRONMENT_ID/settings_merge.json" >  lms.env.json
+
           mv cms.env.json cms.env.json.orig
-          jq -r  '.DATABASES.default.OPTIONS += {ssl_mode: "DISABLED"}' cms.env.json.orig >  cms.env.json
+          jq -s '.[0] * .[1]'  cms.env.json.orig  "$GITHUB_WORKSPACE/environments/$ENVIRONMENT_ID/settings_merge.json" >  cms.env.json
           rm *orig
-
-
 
       - name: Deploy Tutor
         run:  |-
