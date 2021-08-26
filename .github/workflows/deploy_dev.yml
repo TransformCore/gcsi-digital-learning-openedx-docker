@@ -10,9 +10,20 @@ jobs:
       ENVIRONMENT_ID: dev
       NAMESPACE: openedx-dev
       TUTOR_RELEASE: v12.0.4
+      MFE_DOCKER_IMAGE: enginetransformation/openedx-mfe
+
     steps:
       - name: Checkout
         uses: actions/checkout@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -23,6 +34,7 @@ jobs:
 
       - name: Download Tutor binary
         run: |-
+          pip install --upgrade pyyaml
           echo "TUTOR_ROOT=$GITHUB_WORKSPACE/tutor" >> $GITHUB_ENV
           sudo curl -L "https://github.com/overhangio/tutor/releases/download/$TUTOR_RELEASE/tutor-$(uname -s)_$(uname -m)" -o /usr/local/bin/tutor && sudo chmod 0755 /usr/local/bin/tutor
 
@@ -98,8 +110,6 @@ jobs:
         run:  |-
           export TUTOR_JWT_RSA_PRIVATE_KEY=\'$(sed -E 's/$/\n/g' ./jwt_private_key)\'
           tutor --version
-          #pip install tutor-mfe
-          #tutor plugins enable mfe
           tutor config save
           cat $TUTOR_ROOT/config.yml
 
@@ -113,6 +123,16 @@ jobs:
           mv cms.env.json cms.env.json.orig
           jq -s '.[0] * .[1]'  cms.env.json.orig  "$GITHUB_WORKSPACE/environments/$ENVIRONMENT_ID/settings_merge.json" >  cms.env.json
           rm *orig
+
+      - name: Build and push MFE image
+        run:  |-
+          pip install tutor-mfe
+          tutor plugins enable mfe
+          DOCKER_TAG=$(git rev-parse --short HEAD)
+          tutor config save --set MFE_DOCKER_IMAGE=$MFE_DOCKER_IMAGE:$DOCKER_TAG
+          tutor images build mfe
+          tutor images push mfe
+          docker ps
 
       - name: Deploy Tutor
         run:  |-
