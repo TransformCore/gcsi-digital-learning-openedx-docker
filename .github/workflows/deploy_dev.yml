@@ -10,7 +10,6 @@ jobs:
       ENVIRONMENT_ID: dev
       NAMESPACE: openedx-dev
       TUTOR_RELEASE: v12.0.4
-      MFE_DOCKER_IMAGE: enginetransformation/openedx-mfe
 
     steps:
       - name: Checkout
@@ -114,15 +113,6 @@ jobs:
           tutor config save
           cat $TUTOR_ROOT/config.yml
 
-      - name: Build and push MFE image
-        run:  |-
-          #pip install tutor-mfe
-          #tutor plugins enable mfe
-          #DOCKER_TAG=$(git rev-parse --short HEAD)
-          #tutor config save --set MFE_DOCKER_IMAGE=$MFE_DOCKER_IMAGE:$DOCKER_TAG
-          #tutor images build mfe
-          #tutor images push mfe
-
       - name: Patch Generated Configuration
         run:  |-
           pwd
@@ -133,8 +123,6 @@ jobs:
           mv cms.env.json cms.env.json.orig
           jq -s '.[0] * .[1]'  cms.env.json.orig  "$GITHUB_WORKSPACE/environments/$ENVIRONMENT_ID/settings_merge.json" >  cms.env.json
           rm *orig
-
-          #cat "$TUTOR_ROOT/env/plugins/discovery/apps/settings/tutor/production.py"
 
       - name: Deploy Tutor
         run:  |-
