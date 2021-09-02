@@ -106,7 +106,7 @@ jobs:
 
       - name: Install S3 plugin
         run: |-
-          pip install tutor-s3
+          pip install git+https://github.com/hastexo/tutor-s3.git
           tutor plugins enable s3
 
       - name: Are they available here? (debug)
