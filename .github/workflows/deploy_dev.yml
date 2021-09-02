@@ -104,6 +104,11 @@ jobs:
           # Create kubernetes ingress and other environment resources
           kubectl apply -f "environments/$ENVIRONMENT_ID/k8s"
 
+      - name: Install S3 plugin
+        run: |-
+          pip install tutor-s3
+          tutor plugins enable s3
+
       - name: Are they available here? (debug)
         run: |-
           env |grep TUTOR
