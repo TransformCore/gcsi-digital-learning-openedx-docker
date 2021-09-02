@@ -31,11 +31,17 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-2
 
-      - name: Download Tutor binary
+      - name: Setup Python
+        run: sudo apt install python3 python3-pip libyaml-dev
+
+
+      - name: Install Tutor (source)
         run: |-
           pip install --upgrade pyyaml
           echo "TUTOR_ROOT=$GITHUB_WORKSPACE/tutor" >> $GITHUB_ENV
-          sudo curl -L "https://github.com/overhangio/tutor/releases/download/$TUTOR_RELEASE/tutor-$(uname -s)_$(uname -m)" -o /usr/local/bin/tutor && sudo chmod 0755 /usr/local/bin/tutor
+          git clone https://github.com/overhangio/tutor
+          cd tutor
+          pip install -e .
 
       - name: Get Kube config
         run: aws eks --region eu-west-2 update-kubeconfig --name codlp-platform-eks-live --alias eks-live
