@@ -106,8 +106,9 @@ jobs:
 
       - name: Install S3 plugin
         run: |-
-          pip install git+https://github.com/hastexo/tutor-s3.git
+          pip install git+https://github.com/TransformCore/tutor-s3.git@fix_media_root
           tutor plugins enable s3
+          echo "TUTOR_S3_AUTO_CREATE_BUCKET=False" >> $GITHUB_ENV
           kubectl get secret s3 -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' | jq -r 'keys[] as $k | "TUTOR_\($k|ascii_upcase)=\(.[$k])"' >> $GITHUB_ENV
 
 
