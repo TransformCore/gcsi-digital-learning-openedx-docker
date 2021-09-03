@@ -108,6 +108,8 @@ jobs:
         run: |-
           pip install git+https://github.com/hastexo/tutor-s3.git
           tutor plugins enable s3
+          kubectl get secret s3 -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' | jq -r 'keys[] as $k | "TUTOR_\($k|ascii_upcase)=\(.[$k])"' >> $GITHUB_ENV
+
 
       - name: Are they available here? (debug)
         run: |-
