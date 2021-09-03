@@ -133,10 +133,12 @@ jobs:
         run:  |-
           pwd
           cd $TUTOR_ROOT/env/apps/openedx/config/
+          cat lms.env.json
           mv lms.env.json lms.env.json.orig
           jq -s '.[0] * .[1]'  lms.env.json.orig  "$GITHUB_WORKSPACE/environments/$ENVIRONMENT_ID/settings_merge.json" >  lms.env.json
 
           mv cms.env.json cms.env.json.orig
+          cat cms.env.json
           jq -s '.[0] * .[1]'  cms.env.json.orig  "$GITHUB_WORKSPACE/environments/$ENVIRONMENT_ID/settings_merge.json" >  cms.env.json
           rm *orig
 
