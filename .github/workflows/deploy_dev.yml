@@ -110,6 +110,7 @@ jobs:
           tutor plugins enable s3
 
           echo "TUTOR_S3_USE_SSL=True" >> $GITHUB_ENV
+          kubectl get secret s3 -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' | jq -r 'keys[] as $k | "export \($k|ascii_upcase)=\(.[$k])"'
           $(kubectl get secret s3 -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' | jq -r 'keys[] as $k | "export \($k|ascii_upcase)=\(.[$k])"' )
 
           tutor config save --set OPENEDX_AWS_ACCESS_KEY=$OPENEDX_AWS_ACCESS_KEY \
