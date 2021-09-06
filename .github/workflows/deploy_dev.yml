@@ -116,8 +116,7 @@ jobs:
           tutor config save --set OPENEDX_AWS_ACCESS_KEY="$OPENEDX_AWS_ACCESS_KEY" \
                             --set OPENEDX_AWS_SECRET_ACCESS_KEY="$OPENEDX_AWS_SECRET_ACCESS_KEY" \
                             --set S3_AUTO_CREATE_BUCKET="False" \
-                            --set S3_STORAGE_BUCKET="$S3_STORAGE_BUCKET" \
-                            --set S3_HOST="s3-website.eu-west-2.amazonaws.com"
+                            --set S3_STORAGE_BUCKET="$S3_STORAGE_BUCKET" 
 
       - name: Are they available here? (debug)
         run: |-
