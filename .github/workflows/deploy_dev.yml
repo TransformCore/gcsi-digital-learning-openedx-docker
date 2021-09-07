@@ -133,7 +133,7 @@ jobs:
           tutor config save
           cat $TUTOR_ROOT/config.yml
 
-      - name: Patch Generated Configuration
+      - name: Patch Generated Configuration (Static)
         run:  |-
           pwd
           cd $TUTOR_ROOT/env/apps/openedx/config/
@@ -144,6 +144,16 @@ jobs:
           cat -n cms.env.json
           mv cms.env.json cms.env.json.orig
           jq -s '.[0] * .[1]'  cms.env.json.orig  "$GITHUB_WORKSPACE/environments/$ENVIRONMENT_ID/settings_merge.json" >  cms.env.json
+          rm *orig
+
+      - name: Patch Generated Configuration (Dynamic)
+        run:  |-
+          pwd
+          cd $TUTOR_ROOT/env/apps/openedx/config/
+
+          kubectl get secret gcas-oauth -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' |  jq '.GCAS_CLIENT_ID = .CLIENT_ID | .GCAS_CLIENT_SECRET = .CLIENT_SECRET | del(.CLIENT_ID,.CLIENT_SECRET)' > oauth_secrets.json
+          mv lms.env.json lms.env.json.orig
+          jq -s '.[0] * .[1]'  lms.env.json.orig  oauth_secrets.json >  lms.env.json
           rm *orig
 
       - name: Deploy Tutor
