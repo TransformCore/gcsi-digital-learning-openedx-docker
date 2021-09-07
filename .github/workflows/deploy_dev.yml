@@ -173,7 +173,7 @@ jobs:
           $(kubectl get secret admin-edx -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' |   jq -r 'keys[] as $k | "export \($k|ascii_upcase)=\(.[$k])"')
           tutor k8s createuser --password "$ADMIN_PASSWORD" --staff --superuser "$ADMIN_USER" admin@edx
 
-      - name: Setup OAUTH
+      - name: Setup OAUTH for API
         run:  |-
           GCAS_API_USER_NAME=gcasservice
           GCAS_API_USER_EMAIL=gcas@engine
@@ -192,4 +192,9 @@ jobs:
           --update \
           gcas \
           $GCAS_API_USER_NAME"
+
+      - name: Setup OAUTH for GCAS
+        run:  |-
+          tutor k8s exec lms "\
+          ./manage.py lms create_gcas_oauth_application_client_confg "
 
