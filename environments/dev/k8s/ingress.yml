@@ -35,3 +35,13 @@ spec:
             name: cms
             port:
               number: 8000
+  - host: discovery.lms-dev.dlp.engineplatform.co.uk
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: discovery
+              port:
+                number: 8000

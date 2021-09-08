@@ -31,24 +31,23 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-2
 
-      - name: Setup Python
-        run: sudo apt install python3 python3-pip libyaml-dev
-
-
-      - name: Install Tutor (source)
-        run: |-
-          pip install --upgrade pyyaml
-          echo "TUTOR_ROOT=$GITHUB_WORKSPACE/tutor" >> $GITHUB_ENV
-          git clone https://github.com/overhangio/tutor
-          cd tutor
-          pip install -e .
-
       - name: Get Kube config
         run: aws eks --region eu-west-2 update-kubeconfig --name codlp-platform-eks-live --alias eks-live
 
       - name: Install kubectl
         uses: azure/setup-kubectl@v1
         id: install-kubectl
+
+      - name: Setup Python
+        run: sudo apt install python3 python3-pip libyaml-dev
+
+      - name: Install Tutor (from source)
+        run: |-
+          pip install --upgrade pyyaml
+          echo "TUTOR_ROOT=$GITHUB_WORKSPACE/tutor" >> $GITHUB_ENV
+          git clone https://github.com/overhangio/tutor
+          cd tutor
+          pip install -e .
 
       - name: Fech JWT token
         run: |-
@@ -85,13 +84,13 @@ jobs:
 
       - name: Load environment specific settings (direct)
         run: |-
-          # Pin the instalation ID with the Kubernetes namespace. It needs to be unique and static per instalation.
           cat environments/$ENVIRONMENT_ID/config.yml >> $GITHUB_ENV
 
       - name: Load additional environment specific settings  (computed)
         run: |-
           # We don't want to run these services as we are using the Kubernetes ingress instead.
-          echo "TUTOR_ID=$ID" >> $GITHUB_ENV
+
+          echo "TUTOR_ID=tutor-$NAMESPACE" >> $GITHUB_ENV
           echo "TUTOR_LMS_HOST=$LMS_HOSTNAME.$BASE_DOMAIN" >> $GITHUB_ENV
           echo "TUTOR_CMS_HOST=$CMS_HOSTNAME.$BASE_DOMAIN" >> $GITHUB_ENV
           echo "TUTOR_K8S_NAMESPACE=$NAMESPACE" >> $GITHUB_ENV
@@ -117,6 +116,11 @@ jobs:
                             --set OPENEDX_AWS_SECRET_ACCESS_KEY="$OPENEDX_AWS_SECRET_ACCESS_KEY" \
                             --set S3_AUTO_CREATE_BUCKET="False" \
                             --set S3_STORAGE_BUCKET="$S3_STORAGE_BUCKET"
+
+      - name: Install Discovery plugin
+        run: |-
+          pip install git+https://github.com/overhangio/tutor-discovery
+          tutor plugins enable discovery
 
       - name: Are they available here? (debug)
         run: |-
