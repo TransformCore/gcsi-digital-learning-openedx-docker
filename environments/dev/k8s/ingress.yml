@@ -10,12 +10,11 @@ metadata:
 spec:
   tls:
   - hosts:
-    - "lms-dev.dlp.engineplatform.co.uk"
-    - "cms-dev.dlp.engineplatform.co.uk"
-    - "apps-dev.dlp.engineplatform.co.uk"
-    secretName: wild-dlp.engineplatform.co.uk-tls
+    - "dev.global-communications-academy.com"
+    - "*.dev.global-communications-academy.com"
+    secretName: wild-openedx-dev-tls
   rules:
-  - host: lms-dev.dlp.engineplatform.co.uk
+  - host: dev.global-communications-academy.com
     http:
       paths:
       - path: /
@@ -25,7 +24,7 @@ spec:
             name: lms
             port:
               number: 8000
-  - host: cms-dev.dlp.engineplatform.co.uk
+  - host: studio.dev.global-communications-academy.com
     http:
       paths:
       - path: /
@@ -35,7 +34,7 @@ spec:
             name: cms
             port:
               number: 8000
-  - host: discovery.lms-dev.dlp.engineplatform.co.uk
+  - host: discovery.dev.global-communications-academy.com
     http:
       paths:
         - path: /
