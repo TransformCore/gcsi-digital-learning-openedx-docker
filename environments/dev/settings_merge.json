@@ -2,6 +2,7 @@
   "THIRD_PARTY_AUTH_BACKENDS": [
     "edxapi.booking.BookingOAuth2"
   ],
+  "EDX_DOMAIN_NAME": "lms-dev.dlp.engineplatform.co.uk",
   "BOOKING_AUTH_BASE_URL": "https://gcas-dev.dlp.engineplatform.co.uk/",
   "DATABASES": {
     "default": {

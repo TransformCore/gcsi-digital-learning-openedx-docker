@@ -1,5 +1,5 @@
 BASE_DOMAIN=dlp.engineplatform.co.uk
 LMS_HOSTNAME=lms-dev
 CMS_HOSTNAME=cms-dev
-DOCKER_IMAGE_OPENEDX=enginetransformation/openedx:v12.0.4-202108231548
+DOCKER_IMAGE_OPENEDX=enginetransformation/openedx:v12.0.4-202109071537
 ID=bGKIUiytZVHAkzqDDLm4bC1V
