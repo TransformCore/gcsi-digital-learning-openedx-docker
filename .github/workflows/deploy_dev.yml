@@ -8,7 +8,7 @@ jobs:
     env:
       KUBECONFIG: /home/runner/.kube/config
       ENVIRONMENT_ID: dev
-      NAMESPACE: openedx-dev
+      NAMESPACE: gca-dev
       TUTOR_RELEASE: v12.0.4
 
     steps:
