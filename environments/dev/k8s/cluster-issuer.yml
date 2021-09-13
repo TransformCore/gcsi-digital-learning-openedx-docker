@@ -13,7 +13,7 @@ spec:
       - dns01:
           route53:
             region: eu-west-2
-            hostedZoneID: Z0412669EH0BJQKIWSZO
+            hostedZoneID: Z03727731PTWROEM6WW82
 
 ---
 apiVersion: cert-manager.io/v1
