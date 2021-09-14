@@ -1,0 +1,14 @@
+{
+  "THIRD_PARTY_AUTH_BACKENDS": [
+    "edxapi.booking.BookingOAuth2"
+  ],
+  "EDX_DOMAIN_NAME": "test.global-communications-academy.com",
+  "BOOKING_AUTH_BASE_URL": "https://platform.test.global-communications-academy.com/",
+  "DATABASES": {
+    "default": {
+      "OPTIONS": {
+        "ssl_mode": "DISABLED"
+      }
+    }
+  }
+}
