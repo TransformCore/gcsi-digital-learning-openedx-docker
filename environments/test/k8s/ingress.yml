@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: openedx
-  namespace: gca-dev
+  namespace: gca-test
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: "0"
     kubernetes.io/ingress.class: "nginx"
@@ -10,11 +10,11 @@ metadata:
 spec:
   tls:
   - hosts:
-    - "dev.global-communications-academy.com"
-    - "*.dev.global-communications-academy.com"
-    secretName: wild-openedx-dev-tls
+    - "test.global-communications-academy.com"
+    - "*.test.global-communications-academy.com"
+    secretName: wild-openedx-test-tls
   rules:
-  - host: dev.global-communications-academy.com
+  - host: test.global-communications-academy.com
     http:
       paths:
       - path: /
@@ -24,7 +24,7 @@ spec:
             name: lms
             port:
               number: 8000
-  - host: studio.dev.global-communications-academy.com
+  - host: studio.test.global-communications-academy.com
     http:
       paths:
       - path: /
@@ -34,7 +34,7 @@ spec:
             name: cms
             port:
               number: 8000
-  - host: discovery.dev.global-communications-academy.com
+  - host: discovery.test.global-communications-academy.com
     http:
       paths:
         - path: /

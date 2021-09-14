@@ -8,7 +8,7 @@ jobs:
     env:
       KUBECONFIG: /home/runner/.kube/config
       ENVIRONMENT_ID: dev
-      NAMESPACE: openedx-dev
+      NAMESPACE: gca-dev
       TUTOR_RELEASE: v12.0.4
 
     steps:
@@ -84,6 +84,7 @@ jobs:
 
       - name: Load environment specific settings (direct)
         run: |-
+          # Pin the instalation ID with the Kubernetes namespace. It needs to be unique and static per instalation.
           cat environments/$ENVIRONMENT_ID/config.yml >> $GITHUB_ENV
 
       - name: Load additional environment specific settings  (computed)
@@ -133,7 +134,6 @@ jobs:
         run:  |-
           export TUTOR_JWT_RSA_PRIVATE_KEY=\'$(sed -E 's/$/\n/g' ./jwt_private_key)\'
           tutor --version
-          #tutor plugins enable discovery
           tutor config save
           cat $TUTOR_ROOT/config.yml
 

@@ -13,7 +13,7 @@ spec:
       - dns01:
           route53:
             region: eu-west-2
-            hostedZoneID: Z03727731PTWROEM6WW82
+            hostedZoneID: Z004440339H1JCEGNV50C
 
 ---
 apiVersion: cert-manager.io/v1
@@ -25,6 +25,6 @@ spec:
   issuerRef:
     kind: ClusterIssuer
     name: letsencrypt
-  commonName: dev.global-communications-academy.com
+  commonName: test.global-communications-academy.com
   dnsNames:
-    - "*.dev.global-communications-academy.com"
+    - "*.test.global-communications-academy.com"
