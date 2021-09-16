@@ -1,8 +1,9 @@
 {
   "THIRD_PARTY_AUTH_BACKENDS": [
-    "edxapi.booking.BookingOAuth2"
+    "gcsi_edxapi.booking.BookingOAuth2"
   ],
   "EDX_DOMAIN_NAME": "dev.global-communications-academy.com",
+  "GCAS_BASE_URL": "https://platform.test.global-communications-academy.com/",
   "BOOKING_AUTH_BASE_URL": "https://platform.dev.global-communications-academy.com/",
   "DATABASES": {
     "default": {
@@ -10,5 +11,16 @@
         "ssl_mode": "DISABLED"
       }
     }
+  },
+  "COURSE_MODE_DEFAULTS": {
+    "name": "Honor",
+    "slug": "honor",
+    "bulk_sku": null,
+    "currency": "gbp",
+    "description": null,
+    "expiration_datetime": null,
+    "min_price": 0,
+    "sku": null,
+    "suggested_prices": ""
   }
 }
