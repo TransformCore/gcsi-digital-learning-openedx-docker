@@ -1,6 +1,6 @@
 name: Deploy to EKS (TEST)
 
-on: [push, workflow_dispatch]
+on: [ workflow_dispatch]
 
 
 jobs:
@@ -36,7 +36,7 @@ jobs:
         run: |-
           pip install --upgrade pyyaml
           echo "TUTOR_ROOT=$GITHUB_WORKSPACE/tutor" >> $GITHUB_ENV
-          git clone https://github.com/overhangio/tutor
+          git clone https://github.com/overhangio/tutor -b v12.0.4
           cd tutor
           pip install -e .
 
