@@ -1,14 +1,14 @@
-name: Deploy to EKS (TEST)
+name: Deploy to EKS (Staging)
 
-on: [push, workflow_dispatch]
+on: [workflow_dispatch]
 
 jobs:
   deploy:
     runs-on: ubuntu-20.04
     env:
       KUBECONFIG: /home/runner/.kube/config
-      ENVIRONMENT_ID: test
-      NAMESPACE: gca-test
+      ENVIRONMENT_ID: staging
+      NAMESPACE: gca-staging
       TUTOR_RELEASE: v12.1.2
 
     steps:
