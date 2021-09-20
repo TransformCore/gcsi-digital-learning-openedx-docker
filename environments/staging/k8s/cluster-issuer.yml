@@ -1,0 +1,30 @@
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt
+spec:
+  acme:
+    email: no-reply@global-communications-academy.com
+    privateKeySecretRef:
+      name: letsencrypt
+    server: https://acme-v02.api.letsencrypt.org/directory
+    solvers:
+      - dns01:
+          route53:
+            region: eu-west-2
+            hostedZoneID: Z0212487B5TUMX4LRYJJ
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: le-crt
+spec:
+  secretName: wild-openedx-staging-tls
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt
+  commonName: staging.global-communications-academy.com
+  dnsNames:
+    - "*.staging.global-communications-academy.com"

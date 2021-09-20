@@ -1,0 +1,196 @@
+name: Deploy to EKS (Staging)
+
+on: [workflow_dispatch]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-20.04
+    env:
+      KUBECONFIG: /home/runner/.kube/config
+      ENVIRONMENT_ID: staging
+      NAMESPACE: gca-staging
+      TUTOR_RELEASE: v12.1.2
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-2
+
+      - name: Get Kube config
+        run: aws eks --region eu-west-2 update-kubeconfig --name codlp-platform-eks-live --alias eks-live
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v1
+        id: install-kubectl
+
+      - name: Setup Python
+        run: sudo apt install python3 python3-pip libyaml-dev
+
+      - name: Install Tutor (from source)
+        run: |-
+          pip install --upgrade pyyaml
+          echo "TUTOR_ROOT=$GITHUB_WORKSPACE/tutor" >> $GITHUB_ENV
+          git clone https://github.com/overhangio/tutor.git -b $TUTOR_RELEASE
+          cd tutor
+          pip install -e .
+          tutor --version
+
+      - name: Fech JWT token
+        run: |-
+          ### Fetch secrets from Kubernetes into Environment
+          kubectl get secret jwt -n $NAMESPACE -o json |  jq  '.data| map_values(@base64d)'  | jq -r 'keys[] as $k | "\(.[$k])"' > jwt_private_key
+
+      - name: MYSQL
+        run: |-
+          echo "TUTOR_RUN_MYSQL=false" >> $GITHUB_ENV
+          kubectl get secret mysql-root -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' | jq -r 'keys[] as $k | "TUTOR_\($k|ascii_upcase)=\(.[$k])"' >> $GITHUB_ENV
+          kubectl get secret mysql-openedx -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' | jq -r 'keys[] as $k | "TUTOR_\($k|ascii_upcase)=\(.[$k])"' >> $GITHUB_ENV
+
+      - name: Redis
+        run: |-
+          echo "TUTOR_RUN_REDIS=false" >> $GITHUB_ENV
+          kubectl get secret redis -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' | jq -r 'keys[] as $k | "TUTOR_\($k|ascii_upcase)=\(.[$k])"' >> $GITHUB_ENV
+
+      - name: ElasticSearch
+        run: |-
+          echo "TUTOR_RUN_ELASTICSEARCH=false" >> $GITHUB_ENV
+          kubectl get secret elasticsearch -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' | jq -r 'keys[] as $k | "TUTOR_\($k|ascii_upcase)=\(.[$k])"' >> $GITHUB_ENV
+
+      - name: STMP
+        run: |-
+          # These we fetch from GitHub Secrets as we don't own the service
+          echo "TUTOR_RUN_SMTP=false" >> $GITHUB_ENV
+          echo "TUTOR_SMTP_HOST=${{ secrets.SMTP_HOST }}" >> $GITHUB_ENV
+          echo "TUTOR_SMTP_USERNAME=${{ secrets.SMTP_USERNAME }}" >> $GITHUB_ENV
+          echo "TUTOR_SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}" >> $GITHUB_ENV
+          echo "TUTOR_SMTP_USE_SSL=${{ secrets.SMTP_USE_SSL }}" >> $GITHUB_ENV
+          echo "TUTOR_SMTP_PORT=${{ secrets.SMTP_PORT }}" >> $GITHUB_ENV
+          #Secrets
+          kubectl get secret edx-secret-key -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' | jq -r 'keys[] as $k | "TUTOR_\($k|ascii_upcase)=\(.[$k])"' >> $GITHUB_ENV
+
+      - name: Load environment specific settings (direct)
+        run: |-
+          # Pin the instalation ID with the Kubernetes namespace. It needs to be unique and static per instalation.
+          cat environments/$ENVIRONMENT_ID/config.yml >> $GITHUB_ENV
+
+      - name: Load additional environment specific settings  (computed)
+        run: |-
+          # We don't want to run these services as we are using the Kubernetes ingress instead.
+
+          echo "TUTOR_ID=tutor-$NAMESPACE" >> $GITHUB_ENV
+          echo "TUTOR_LMS_HOST=$LMS_HOSTNAME" >> $GITHUB_ENV
+          echo "TUTOR_CMS_HOST=$CMS_HOSTNAME" >> $GITHUB_ENV
+          echo "TUTOR_K8S_NAMESPACE=$NAMESPACE" >> $GITHUB_ENV
+          echo "TUTOR_DOCKER_IMAGE_OPENEDX=$DOCKER_IMAGE_OPENEDX" >> $GITHUB_ENV
+          echo "TUTOR_RUN_CADDY=false" >> $GITHUB_ENV
+          echo "TUTOR_RUN_NGINX=false" >> $GITHUB_ENV
+
+      - name: Create Kubernetes add-on resources
+        run:  |-
+          # Create kubernetes ingress and other environment resources
+          kubectl apply -f "environments/$ENVIRONMENT_ID/k8s"
+
+      - name: Install S3 plugin
+        run: |-
+          pip install git+https://github.com/TransformCore/tutor-s3.git@fix_media_root
+          tutor plugins enable s3
+
+          echo "TUTOR_S3_USE_SSL=True" >> $GITHUB_ENV
+          kubectl get secret s3 -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' | jq -r 'keys[] as $k | "export \($k|ascii_upcase)=\(.[$k])"'
+          $(kubectl get secret s3 -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' | jq -r 'keys[] as $k | "export \($k|ascii_upcase)=\(.[$k])"' )
+
+          tutor config save --set OPENEDX_AWS_ACCESS_KEY="$OPENEDX_AWS_ACCESS_KEY" \
+                            --set OPENEDX_AWS_SECRET_ACCESS_KEY="$OPENEDX_AWS_SECRET_ACCESS_KEY" \
+                            --set S3_AUTO_CREATE_BUCKET="False" \
+                            --set S3_STORAGE_BUCKET="$S3_STORAGE_BUCKET"
+
+      - name: Install Discovery plugin
+        run: |-
+          pip install git+https://github.com/overhangio/tutor-discovery
+          tutor plugins enable discovery
+
+      - name: Are they available here? (debug)
+        run: |-
+          env |grep TUTOR
+          # These we fetch from GitHub Secrets as we don't own the service
+          # Also these values are discreet, and there's little point to manage them in a CI worflow.
+          # They could be imported from a environment specific file stored in the repo(?)
+
+      - name: Generate Tutor Config
+        run:  |-
+          export TUTOR_JWT_RSA_PRIVATE_KEY=\'$(sed -E 's/$/\n/g' ./jwt_private_key)\'
+          tutor --version
+          tutor config save
+          cat $TUTOR_ROOT/config.yml
+
+      - name: Patch Generated Configuration (Static)
+        run:  |-
+          pwd
+          cd $TUTOR_ROOT/env/apps/openedx/config/
+          cat -n lms.env.json
+          mv lms.env.json lms.env.json.orig
+          jq -s '.[0] * .[1]'  lms.env.json.orig  "$GITHUB_WORKSPACE/environments/$ENVIRONMENT_ID/settings_merge.json" >  lms.env.json
+
+          cat -n cms.env.json
+          mv cms.env.json cms.env.json.orig
+          jq -s '.[0] * .[1]'  cms.env.json.orig  "$GITHUB_WORKSPACE/environments/$ENVIRONMENT_ID/settings_merge.json" >  cms.env.json
+          rm *orig
+
+      - name: Patch Generated Configuration (Dynamic)
+        run:  |-
+          pwd
+          cd $TUTOR_ROOT/env/apps/openedx/config/
+
+          kubectl get secret gcas-oauth -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' |  jq '.GCAS_CLIENT_ID = .CLIENT_ID | .GCAS_CLIENT_SECRET = .CLIENT_SECRET | del(.CLIENT_ID,.CLIENT_SECRET)' > oauth_secrets.json
+          mv lms.env.json lms.env.json.orig
+          jq -s '.[0] * .[1]'  lms.env.json.orig  oauth_secrets.json >  lms.env.json
+          rm *orig
+
+      - name: Deploy Tutor
+        run:  |-
+          tutor k8s start
+
+      - name: Run tutor init
+        run:  |-
+          tutor k8s init
+
+      - name: Set theme
+        run:  |-
+          tutor k8s settheme gcsi-openedx-theme "$TUTOR_LMS_HOST"
+
+      - name: Create admin user
+        run:  |-
+          $(kubectl get secret admin-edx -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' |   jq -r 'keys[] as $k | "export \($k|ascii_upcase)=\(.[$k])"')
+          tutor k8s createuser --password "$ADMIN_PASSWORD" --staff --superuser "$ADMIN_USER" admin@edx
+
+      - name: Setup OAUTH for API
+        run:  |-
+          GCAS_API_USER_NAME=gcasservice
+          GCAS_API_USER_EMAIL=gcas@engine
+
+          $(kubectl get secret edx-api -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' |   jq -r 'keys[] as $k | "export \($k|ascii_upcase)=\(.[$k])"')
+
+          tutor k8s exec lms "./manage.py lms manage_user $GCAS_API_USER_NAME $GCAS_API_USER_EMAIL --staff --superuser --unusable-password"
+
+          tutor k8s exec lms "\
+          ./manage.py lms create_dot_application \
+          --grant-type client-credentials \
+          --client-id $CLIENT_ID \
+          --client-secret $CLIENT_SECRET \
+          --scopes user_id \
+          --skip-authorization \
+          --update \
+          gcas \
+          $GCAS_API_USER_NAME"
+
+      - name: Setup OAUTH for GCAS
+        run:  |-
+          tutor k8s exec lms "\
+          ./manage.py lms create_gcas_oauth_application_client_confg "
+
