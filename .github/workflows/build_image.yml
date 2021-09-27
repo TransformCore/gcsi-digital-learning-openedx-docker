@@ -61,17 +61,17 @@ jobs:
 #          token: ${{ secrets.PAT }}
 #          ref: master
 
-      - name: Validate custom resource locations
-        run: |
-          echo "### Themes"
-          tree -d $THEMES_PATH
-          echo "### Plugins"
-          ls -l $PLUGINS_PATH
-          tree -d $PLUGINS_PATH
+#      - name: Validate custom resource locations
+#        run: |
+#          echo "### Themes"
+#          tree -d $THEMES_PATH
+#          echo "### Plugins"
+#          ls -l $PLUGINS_PATH
+#          tree -d $PLUGINS_PATH
 
-      - name: Add private.txt requirements
-        run: |
-          cp image/private.txt ${{ env.PLUGINS_PATH }}
+#      - name: Add private.txt requirements
+#        run: |
+#          cp image/private.txt ${{ env.PLUGINS_PATH }}
 
       - name: Render Tutor Config
         run: |
