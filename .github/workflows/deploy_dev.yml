@@ -179,6 +179,7 @@ jobs:
           tutor k8s exec lms "./manage.py lms manage_user $GCAS_API_USER_NAME $GCAS_API_USER_EMAIL --staff --superuser --unusable-password"
 
           tutor k8s exec lms "\
+          DJANGO_SETTINGS_MODULE=lms.envs.tutor.production \
           ./manage.py lms create_dot_application \
           --grant-type client-credentials \
           --client-id $CLIENT_ID \
