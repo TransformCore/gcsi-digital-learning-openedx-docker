@@ -12,6 +12,6 @@
 
 git+https://github.com/Stanford-Online/xblock-in-video-quiz
 git+https://github.com/open-craft/xblock-activetable.git
-django-debug-toolbar
-factory_boy
--e ./gcsi-digital-learning-openedx
+#django-debug-toolbar
+#factory_boy
+#-e ./gcsi-digital-learning-openedx

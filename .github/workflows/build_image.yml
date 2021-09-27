@@ -53,13 +53,13 @@ jobs:
           token: ${{ secrets.PAT }}
           ref: main
 
-      - name: Checkout Plugin repo
-        uses: actions/checkout@v2
-        with:
-          repository: TransformCore/gcsi-digital-learning-openedx
-          path: ${{ env.PLUGINS_PATH }}/gcsi-digital-learning-openedx
-          token: ${{ secrets.PAT }}
-          ref: master
+#      - name: Checkout Plugin repo
+#        uses: actions/checkout@v2
+#        with:
+#          repository: TransformCore/gcsi-digital-learning-openedx
+#          path: ${{ env.PLUGINS_PATH }}/gcsi-digital-learning-openedx
+#          token: ${{ secrets.PAT }}
+#          ref: master
 
       - name: Validate custom resource locations
         run: |
