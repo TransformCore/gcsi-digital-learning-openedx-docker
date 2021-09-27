@@ -169,25 +169,25 @@ jobs:
           $(kubectl get secret admin-edx -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' |   jq -r 'keys[] as $k | "export \($k|ascii_upcase)=\(.[$k])"')
           tutor k8s createuser --password "$ADMIN_PASSWORD" --staff --superuser "$ADMIN_USER" admin@edx
 
-      - name: Setup OAUTH for API
-        run:  |-
-          GCAS_API_USER_NAME=gcasservice
-          GCAS_API_USER_EMAIL=gcas@engine
-
-          $(kubectl get secret edx-api -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' |   jq -r 'keys[] as $k | "export \($k|ascii_upcase)=\(.[$k])"')
-
-          tutor k8s exec lms "./manage.py lms manage_user $GCAS_API_USER_NAME $GCAS_API_USER_EMAIL --staff --superuser --unusable-password"
-
-          tutor k8s exec lms "\
-          ./manage.py lms create_dot_application \
-          --grant-type client-credentials \
-          --client-id $CLIENT_ID \
-          --client-secret $CLIENT_SECRET \
-          --scopes user_id \
-          --skip-authorization \
-          --update \
-          gcas \
-          $GCAS_API_USER_NAME"
+#      - name: Setup OAUTH for API
+#        run:  |-
+#          GCAS_API_USER_NAME=gcasservice
+#          GCAS_API_USER_EMAIL=gcas@engine
+#
+#          $(kubectl get secret edx-api -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' |   jq -r 'keys[] as $k | "export \($k|ascii_upcase)=\(.[$k])"')
+#
+#          tutor k8s exec lms "./manage.py lms manage_user $GCAS_API_USER_NAME $GCAS_API_USER_EMAIL --staff --superuser --unusable-password"
+#
+#          tutor k8s exec lms "\
+#          ./manage.py lms create_dot_application \
+#          --grant-type client-credentials \
+#          --client-id $CLIENT_ID \
+#          --client-secret $CLIENT_SECRET \
+#          --scopes user_id \
+#          --skip-authorization \
+#          --update \
+#          gcas \
+#          $GCAS_API_USER_NAME"
 
       - name: Setup OAUTH for GCAS
         run:  |-
