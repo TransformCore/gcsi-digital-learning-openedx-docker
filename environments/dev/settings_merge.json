@@ -3,7 +3,7 @@
     "gcsi_edxapi.booking.BookingOAuth2"
   ],
   "EDX_DOMAIN_NAME": "dev.global-communications-academy.com",
-  "GCAS_BASE_URL": "https://platform.test.global-communications-academy.com",
+  "GCAS_BASE_URL": "https://platform.dev.global-communications-academy.com",
   "BOOKING_AUTH_BASE_URL": "https://platform.dev.global-communications-academy.com/",
   "DATABASES": {
     "default": {
