@@ -9,7 +9,6 @@ jobs:
       KUBECONFIG: /home/runner/.kube/config
       ENVIRONMENT_ID: staging
       NAMESPACE: gca-staging
-      TUTOR_RELEASE: v12.1.2
 
     steps:
       - name: Checkout
@@ -36,7 +35,7 @@ jobs:
         run: |-
           pip install --upgrade pyyaml
           echo "TUTOR_ROOT=$GITHUB_WORKSPACE/tutor" >> $GITHUB_ENV
-          git clone https://github.com/overhangio/tutor.git -b $TUTOR_RELEASE
+          git clone https://github.com/TransformCore/tutor.git
           cd tutor
           pip install -e .
           tutor --version
@@ -82,7 +81,6 @@ jobs:
       - name: Load additional environment specific settings  (computed)
         run: |-
           # We don't want to run these services as we are using the Kubernetes ingress instead.
-
           echo "TUTOR_ID=tutor-$NAMESPACE" >> $GITHUB_ENV
           echo "TUTOR_LMS_HOST=$LMS_HOSTNAME" >> $GITHUB_ENV
           echo "TUTOR_CMS_HOST=$CMS_HOSTNAME" >> $GITHUB_ENV
@@ -98,7 +96,7 @@ jobs:
 
       - name: Install S3 plugin
         run: |-
-          pip install git+https://github.com/TransformCore/tutor-s3.git@fix_media_root
+          pip install git+https://github.com/TransformCore/tutor-s3.git
           tutor plugins enable s3
 
           echo "TUTOR_S3_USE_SSL=True" >> $GITHUB_ENV
@@ -112,7 +110,7 @@ jobs:
 
       - name: Install Discovery plugin
         run: |-
-          pip install git+https://github.com/overhangio/tutor-discovery
+          pip install git+https://github.com/TransformCore/tutor-discovery.git
           tutor plugins enable discovery
 
       - name: Are they available here? (debug)
@@ -176,7 +174,7 @@ jobs:
 
           $(kubectl get secret edx-api -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' |   jq -r 'keys[] as $k | "export \($k|ascii_upcase)=\(.[$k])"')
 
-          tutor k8s exec lms "DJANGO_SETTINGS_MODULE=lms.envs.tutor.production ./manage.py lms manage_user $GCAS_API_USER_NAME $GCAS_API_USER_EMAIL --staff --superuser --unusable-password"
+          tutor k8s exec lms "DJANGO_SETTINGS_MODULE=lms.envs.tutor.production  ./manage.py lms manage_user $GCAS_API_USER_NAME $GCAS_API_USER_EMAIL --staff --superuser --unusable-password"
 
           tutor k8s exec lms "\
           DJANGO_SETTINGS_MODULE=lms.envs.tutor.production ./manage.py lms create_dot_application \
