@@ -1,3 +1,3 @@
 LMS_HOSTNAME=test.global-communications-academy.com
 CMS_HOSTNAME=studio.test.global-communications-academy.com
-DOCKER_IMAGE_OPENEDX=enginetransformation/openedx:v12.1.2-202110061337
+DOCKER_IMAGE_OPENEDX=enginetransformation/openedx:v12.1.2-202110061415
