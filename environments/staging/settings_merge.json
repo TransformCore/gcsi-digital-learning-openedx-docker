@@ -11,16 +11,5 @@
         "ssl_mode": "DISABLED"
       }
     }
-  },
-  "COURSE_MODE_DEFAULTS": {
-    "name": "Honor",
-    "slug": "honor",
-    "bulk_sku": null,
-    "currency": "gbp",
-    "description": null,
-    "expiration_datetime": null,
-    "min_price": 0,
-    "sku": null,
-    "suggested_prices": ""
   }
 }
