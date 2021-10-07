@@ -154,6 +154,12 @@ jobs:
           jq -s '.[0] * .[1]'  lms.env.json.orig  oauth_secrets.json >  lms.env.json
           rm *orig
 
+          kubectl get secret gcas-api -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' > gcas_api_secrets.json
+          mv lms.env.json lms.env.json.orig
+          jq -s '.[0] * .[1]'  lms.env.json.orig  gcas_api_secrets.json >  lms.env.json
+          rm *orig
+
+
       - name: Deploy Tutor
         run:  |-
           tutor k8s start
