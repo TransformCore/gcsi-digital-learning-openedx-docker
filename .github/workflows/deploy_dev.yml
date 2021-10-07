@@ -100,7 +100,6 @@ jobs:
           tutor plugins enable s3
 
           echo "TUTOR_S3_USE_SSL=True" >> $GITHUB_ENV
-          kubectl get secret s3 -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' | jq -r 'keys[] as $k | "export \($k|ascii_upcase)=\(.[$k])"'
           $(kubectl get secret s3 -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' | jq -r 'keys[] as $k | "export \($k|ascii_upcase)=\(.[$k])"' )
 
           tutor config save --set OPENEDX_AWS_ACCESS_KEY="$OPENEDX_AWS_ACCESS_KEY" \
@@ -148,6 +147,11 @@ jobs:
           kubectl get secret gcas-oauth -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' |  jq '.GCAS_CLIENT_ID = .CLIENT_ID | .GCAS_CLIENT_SECRET = .CLIENT_SECRET | del(.CLIENT_ID,.CLIENT_SECRET)' > oauth_secrets.json
           mv lms.env.json lms.env.json.orig
           jq -s '.[0] * .[1]'  lms.env.json.orig  oauth_secrets.json >  lms.env.json
+          rm *orig
+
+          kubectl get secret gcas-api -n $NAMESPACE  -o json | jq  '.data | map_values(@base64d)' > gcas_api_secrets.json
+          mv lms.env.json lms.env.json.orig
+          jq -s '.[0] * .[1]'  lms.env.json.orig  gcas_api_secrets.json >  lms.env.json
           rm *orig
 
       - name: Deploy Tutor
