@@ -1,3 +1,3 @@
 LMS_HOSTNAME=staging.global-communications-academy.com
 CMS_HOSTNAME=studio.staging.global-communications-academy.com
-DOCKER_IMAGE_OPENEDX=enginetransformation/openedx:v12.1.2-202110051103
+DOCKER_IMAGE_OPENEDX=824885811700.dkr.ecr.eu-west-2.amazonaws.com/openedx:12.1.3-202110110854

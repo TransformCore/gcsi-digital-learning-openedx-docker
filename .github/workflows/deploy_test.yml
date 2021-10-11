@@ -42,7 +42,7 @@ jobs:
           git clone https://github.com/TransformCore/tutor.git
           cd tutor
           pip install -e .
-          tutor --version
+          echo "TUTOR_VERSION=$(tutor --version | cut -f3 -d' ')" >> $GITHUB_ENV
 
       - name: Fech JWT token
         run: |-
